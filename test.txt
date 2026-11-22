@@ -1,0 +1,3 @@
+# Online Retail Sales Analytics Dashboard
+Workspace Root: C:\Users\srika\.gemini\antigravity\scratch\online-retail-sales-analytics
+Run "python app.py" to start the dashboard server.

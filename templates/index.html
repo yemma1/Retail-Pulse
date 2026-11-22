@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Retail Sales Analytics Dashboard | Enterprise BI</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- ================================================================== -->
+        <!-- SIDEBAR NAVIGATION -->
+        <!-- ================================================================== -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-chart-line-up brand-icon"></i>
+                    <div>
+                        <h5 class="brand-title">RetailNexus</h5>
+                        <span class="brand-subtitle">Sales Analytics Platform</span>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-link text-white d-lg-none" id="sidebarCloseBtn">
+                    <i class="fa-solid fa-xmark fs-5"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-menu-wrapper">
+                <div class="menu-section-label">ANALYTICS VIEWS</div>
+                <ul class="sidebar-menu">
+                    <li class="menu-item active" data-target="section-overview">
+                        <a href="#overview"><i class="fa-solid fa-grid-2"></i> <span>Executive Overview</span></a>
+                    </li>
+                    <li class="menu-item" data-target="section-revenue">
+                        <a href="#revenue"><i class="fa-solid fa-sack-dollar"></i> <span>Revenue Analysis</span></a>
+                    </li>
+                    <li class="menu-item" data-target="section-products">
+                        <a href="#products"><i class="fa-solid fa-box-open"></i> <span>Best-Selling Products</span></a>
+                    </li>
+                    <li class="menu-item" data-target="section-monthly">
+                        <a href="#monthly"><i class="fa-solid fa-calendar-days"></i> <span>Monthly Sales Trends</span></a>
+                    </li>
+                    <li class="menu-item" data-target="section-customers">
+                        <a href="#customers"><i class="fa-solid fa-users"></i> <span>Top Customers</span></a>
+                    </li>
+                    <li class="menu-item" data-target="section-categories">
+                        <a href="#categories"><i class="fa-solid fa-tags"></i> <span>Category Comparison</span></a>
+                    </li>
+                    <li class="menu-item" data-target="section-cities">
+                        <a href="#cities"><i class="fa-solid fa-city"></i> <span>High-Revenue Cities</span></a>
+                    </li>
+                    <li class="menu-item" data-target="section-insights">
+                        <a href="#insights"><i class="fa-solid fa-wand-magic-sparkles"></i> <span>Business Insights</span> <span class="badge bg-primary ms-auto">AI/SQL</span></a>
+                    </li>
+                </ul>
+
+                <div class="menu-section-label mt-4">DEVELOPER & DATABASE</div>
+                <ul class="sidebar-menu">
+                    <li class="menu-item" data-target="section-sql">
+                        <a href="#sql"><i class="fa-solid fa-database"></i> <span>Oracle SQL Queries</span></a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="db-badge-card">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="status-indicator online"></span>
+                        <div class="text-truncate">
+                            <div class="small fw-bold text-white" id="sidebarDbName">Oracle SQL Engine</div>
+                            <div class="text-xs text-white-50" id="sidebarDbMode">Active Connection</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ================================================================== -->
+        <!-- MAIN CONTENT AREA -->
+        <!-- ================================================================== -->
+        <main class="app-main">
+            <!-- Top Navbar -->
+            <header class="app-navbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggleBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div>
+                        <h4 class="page-title mb-0" id="currentPageHeading">Executive Overview</h4>
+                        <span class="text-muted text-xs">Real-time enterprise retail metrics powered by Oracle SQL</span>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Engine Indicator Pill -->
+                    <div class="engine-status-pill" id="engineStatusPill">
+                        <i class="fa-solid fa-database"></i>
+                        <span id="engineStatusText">Oracle Engine Ready</span>
+                    </div>
+
+                    <!-- Live Clock / Refresh -->
+                    <button class="btn btn-primary btn-sm refresh-btn shadow-sm" id="btnRefreshAll" title="Refresh all analytical data">
+                        <i class="fa-solid fa-arrows-rotate me-1" id="refreshIcon"></i> Refresh Data
+                    </button>
+                </div>
+            </header>
+
+            <!-- ============================================================== -->
+            <!-- GLOBAL FILTER PANEL -->
+            <!-- ============================================================== -->
+            <div class="filter-panel-card shadow-sm">
+                <div class="filter-panel-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-sliders text-primary"></i>
+                        <span class="fw-semibold">Analytics Filters & Parameters</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" id="btnResetFilters">
+                            <i class="fa-solid fa-rotate-left me-1"></i> Reset
+                        </button>
+                        <button class="btn btn-sm btn-primary" id="btnApplyFilters">
+                            <i class="fa-solid fa-filter me-1"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label text-xs fw-medium text-muted">From Date</label>
+                        <input type="date" class="form-control form-control-sm" id="filterStartDate">
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label text-xs fw-medium text-muted">To Date</label>
+                        <input type="date" class="form-control form-control-sm" id="filterEndDate">
+                    </div>
+                    <div class="col-md-2 col-sm-6">
+                        <label class="form-label text-xs fw-medium text-muted">Product Category</label>
+                        <select class="form-select form-select-sm" id="filterCategory">
+                            <option value="all">All Categories</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-sm-6">
+                        <label class="form-label text-xs fw-medium text-muted">Customer City</label>
+                        <select class="form-select form-select-sm" id="filterCity">
+                            <option value="all">All Cities</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-sm-6">
+                        <label class="form-label text-xs fw-medium text-muted">Order Status</label>
+                        <select class="form-select form-select-sm" id="filterStatus">
+                            <option value="all_active">Active (Excl. Cancelled)</option>
+                            <option value="Completed">Completed Only</option>
+                            <option value="Shipped">Shipped Only</option>
+                            <option value="Processing">Processing Only</option>
+                            <option value="all">Include Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- 6 MAIN KPI CARDS -->
+            <!-- ============================================================== -->
+            <div class="kpi-grid">
+                <!-- 1. Total Revenue -->
+                <div class="kpi-card shadow-sm card-revenue">
+                    <div class="kpi-icon-wrapper bg-soft-primary text-primary">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-title">Total Revenue</span>
+                        <h3 class="kpi-value" id="kpiTotalRevenue">$0.00</h3>
+                        <div class="kpi-meta text-success">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                            <span>Net completed sales</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Total Orders -->
+                <div class="kpi-card shadow-sm card-orders">
+                    <div class="kpi-icon-wrapper bg-soft-info text-info">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-title">Total Orders</span>
+                        <h3 class="kpi-value" id="kpiTotalOrders">0</h3>
+                        <div class="kpi-meta text-primary">
+                            <i class="fa-solid fa-receipt"></i>
+                            <span>Transactions fulfilled</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Total Products Sold -->
+                <div class="kpi-card shadow-sm card-sold">
+                    <div class="kpi-icon-wrapper bg-soft-success text-success">
+                        <i class="fa-solid fa-box-check"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-title">Products Sold</span>
+                        <h3 class="kpi-value" id="kpiTotalProductsSold">0</h3>
+                        <div class="kpi-meta text-muted">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                            <span>Total line item units</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Total Customers -->
+                <div class="kpi-card shadow-sm card-customers">
+                    <div class="kpi-icon-wrapper bg-soft-warning text-warning">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-title">Active Customers</span>
+                        <h3 class="kpi-value" id="kpiTotalCustomers">0</h3>
+                        <div class="kpi-meta text-warning">
+                            <i class="fa-solid fa-user-check"></i>
+                            <span>Distinct purchasing buyers</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Average Order Value -->
+                <div class="kpi-card shadow-sm card-aov">
+                    <div class="kpi-icon-wrapper bg-soft-danger text-danger">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-title">Average Order Value</span>
+                        <h3 class="kpi-value" id="kpiAverageOrderValue">$0.00</h3>
+                        <div class="kpi-meta text-muted">
+                            <i class="fa-solid fa-calculator"></i>
+                            <span>Revenue / Total orders</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Total Categories -->
+                <div class="kpi-card shadow-sm card-categories">
+                    <div class="kpi-icon-wrapper bg-soft-purple text-purple">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-title">Active Categories</span>
+                        <h3 class="kpi-value" id="kpiTotalCategories">0</h3>
+                        <div class="kpi-meta text-purple">
+                            <i class="fa-solid fa-tags"></i>
+                            <span>Catalog sectors active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- DYNAMIC SECTIONS CONTAINER -->
+            <!-- ============================================================== -->
+            <div class="content-sections mt-4">
+
+                <!-- SECTION: EXECUTIVE OVERVIEW -->
+                <section class="app-section active" id="section-overview">
+                    <div class="row g-4">
+                        <!-- Monthly Sales Trend Chart -->
+                        <div class="col-lg-8">
+                            <div class="chart-card shadow-sm h-100">
+                                <div class="chart-card-header">
+                                    <div>
+                                        <h6 class="chart-card-title">Monthly Revenue & Sales Trend</h6>
+                                        <span class="chart-card-subtitle">Monthly net revenue (bars) and orders volume (line)</span>
+                                    </div>
+                                    <span class="badge bg-soft-primary text-primary" id="overviewPeakMonthBadge">Peak Month: --</span>
+                                </div>
+                                <div class="chart-body" style="height: 320px;">
+                                    <canvas id="monthlyTrendChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Category Distribution Chart -->
+                        <div class="col-lg-4">
+                            <div class="chart-card shadow-sm h-100">
+                                <div class="chart-card-header">
+                                    <div>
+                                        <h6 class="chart-card-title">Category Revenue Share</h6>
+                                        <span class="chart-card-subtitle">Revenue distribution by category</span>
+                                    </div>
+                                </div>
+                                <div class="chart-body d-flex align-items-center justify-content-center" style="height: 320px;">
+                                    <canvas id="categoryShareChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top Best-Selling Products Bar Chart -->
+                        <div class="col-lg-7">
+                            <div class="chart-card shadow-sm h-100">
+                                <div class="chart-card-header">
+                                    <div>
+                                        <h6 class="chart-card-title">Top 10 Best-Selling Products</h6>
+                                        <span class="chart-card-subtitle">Ranked by total quantity sold</span>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="switchSection('section-products')">
+                                        View Full Table <i class="fa-solid fa-arrow-right ms-1"></i>
+                                    </button>
+                                </div>
+                                <div class="chart-body" style="height: 320px;">
+                                    <canvas id="topProductsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top Revenue Cities Horizontal Bar Chart -->
+                        <div class="col-lg-5">
+                            <div class="chart-card shadow-sm h-100">
+                                <div class="chart-card-header">
+                                    <div>
+                                        <h6 class="chart-card-title">High-Revenue Regional Markets</h6>
+                                        <span class="chart-card-subtitle">Top metropolitan sales hubs</span>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="switchSection('section-cities')">
+                                        View Cities <i class="fa-solid fa-arrow-right ms-1"></i>
+                                    </button>
+                                </div>
+                                <div class="chart-body" style="height: 320px;">
+                                    <canvas id="citiesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: FEATURE 1 - REVENUE ANALYSIS -->
+                <section class="app-section" id="section-revenue">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-sack-dollar text-primary me-2"></i>Feature 1: Comprehensive Revenue Breakdown</h5>
+                                        <span class="text-muted text-xs">Total revenue calculated from all completed orders, grouped by product, category, and city.</span>
+                                    </div>
+                                    <a href="/export/csv/products" class="btn btn-sm btn-outline-success">
+                                        <i class="fa-solid fa-file-csv me-1"></i> Export Product Revenue CSV
+                                    </a>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="nav nav-pills mb-3" id="revenueTabs" role="tablist">
+                                        <li class="nav-item">
+                                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#revByProductTab">Revenue by Product</button>
+                                        </li>
+                                        <li class="nav-item">
+                                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#revByCategoryTab">Revenue by Category</button>
+                                        </li>
+                                        <li class="nav-item">
+                                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#revByCityTab">Revenue by City</button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content" id="revenueTabContent">
+                                        <!-- Revenue by Product Table -->
+                                        <div class="tab-pane fade show active" id="revByProductTab">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover align-middle" id="tableRevByProduct">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Product Name</th>
+                                                            <th>Category</th>
+                                                            <th class="text-end">Quantity Sold</th>
+                                                            <th class="text-end">Total Revenue</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tbodyRevByProduct">
+                                                        <!-- Injected dynamically -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Revenue by Category Table -->
+                                        <div class="tab-pane fade" id="revByCategoryTab">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover align-middle" id="tableRevByCategory">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Category Name</th>
+                                                            <th class="text-end">Total Orders</th>
+                                                            <th class="text-end">Quantity Sold</th>
+                                                            <th class="text-end">Total Revenue</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tbodyRevByCategory">
+                                                        <!-- Injected dynamically -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <!-- Revenue by City Table -->
+                                        <div class="tab-pane fade" id="revByCityTab">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover align-middle" id="tableRevByCity">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>City</th>
+                                                            <th>State</th>
+                                                            <th class="text-end">Orders</th>
+                                                            <th class="text-end">Units Sold</th>
+                                                            <th class="text-end">Total Revenue</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tbodyRevByCity">
+                                                        <!-- Injected dynamically -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: FEATURE 2 - BEST SELLING PRODUCTS -->
+                <section class="app-section" id="section-products">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div>
+                                <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-box-open text-primary me-2"></i>Feature 2: Best-Selling Products</h5>
+                                <span class="text-muted text-xs">Identifies top 10 products with quantity sold, revenue generated, and remaining stock.</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-secondary active" id="btnSortByQty">Sort by Quantity</button>
+                                    <button type="button" class="btn btn-outline-secondary" id="btnSortByRev">Sort by Revenue</button>
+                                </div>
+                                <a href="/export/csv/products" class="btn btn-sm btn-outline-success">
+                                    <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle" id="tableBestSellingProducts">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Product Name</th>
+                                            <th>Category</th>
+                                            <th class="text-end">Unit Price</th>
+                                            <th class="text-end">Quantity Sold</th>
+                                            <th class="text-end">Total Revenue</th>
+                                            <th class="text-end">Inventory Stock</th>
+                                            <th class="text-center">Stock Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbodyBestSellingProducts">
+                                        <!-- Injected dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: FEATURE 3 - MONTHLY SALES ANALYSIS -->
+                <section class="app-section" id="section-monthly">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-calendar-days text-primary me-2"></i>Feature 3: Monthly Sales Analysis & MoM Growth</h5>
+                                        <span class="text-muted text-xs">Monthly revenue, order count, peak revenue month, and Month-over-Month (MoM) % growth rate.</span>
+                                    </div>
+                                    <a href="/export/csv/monthly" class="btn btn-sm btn-outline-success">
+                                        <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+                                    </a>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle" id="tableMonthlySales">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Sales Month</th>
+                                                    <th class="text-end">Order Count</th>
+                                                    <th class="text-end">Units Sold</th>
+                                                    <th class="text-end">Monthly Revenue</th>
+                                                    <th class="text-end">Monthly AOV</th>
+                                                    <th class="text-end">MoM Growth Rate</th>
+                                                    <th class="text-center">Performance Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbodyMonthlySales">
+                                                <!-- Injected dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: FEATURE 4 - TOP CUSTOMERS -->
+                <section class="app-section" id="section-customers">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div>
+                                <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-users text-primary me-2"></i>Feature 4: Top 10 Spending Customers</h5>
+                                <span class="text-muted text-xs">Ranked by total lifetime spending using Oracle SQL Window Function DENSE_RANK().</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="text" class="form-control form-control-sm" placeholder="Search customer or city..." id="customerSearchInput" style="width: 220px;">
+                                <a href="/export/csv/customers" class="btn btn-sm btn-outline-success">
+                                    <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle" id="tableTopCustomers">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Customer Name</th>
+                                            <th>Email</th>
+                                            <th>Location</th>
+                                            <th class="text-end">Total Orders</th>
+                                            <th class="text-end">Items Bought</th>
+                                            <th class="text-end">Total Spending</th>
+                                            <th class="text-end">Average Order Value</th>
+                                            <th class="text-center">VIP Tier</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbodyTopCustomers">
+                                        <!-- Injected dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: FEATURE 5 - CATEGORY COMPARISON -->
+                <section class="app-section" id="section-categories">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-tags text-primary me-2"></i>Feature 5: Product Category Comparison</h5>
+                                <span class="text-muted text-xs">Revenue, units sold, and market share percentage calculated via Oracle SUM() OVER () window function.</span>
+                            </div>
+                            <a href="/export/csv/categories" class="btn btn-sm btn-outline-success">
+                                <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle" id="tableCategories">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Category Name</th>
+                                            <th class="text-end">Distinct Products</th>
+                                            <th class="text-end">Total Orders</th>
+                                            <th class="text-end">Units Sold</th>
+                                            <th class="text-end">Total Revenue</th>
+                                            <th class="text-end">Market Share %</th>
+                                            <th class="text-center">Performance Tier</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbodyCategories">
+                                        <!-- Injected dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: FEATURE 6 - HIGH REVENUE CITIES -->
+                <section class="app-section" id="section-cities">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-city text-primary me-2"></i>Feature 6: High-Revenue Cities Ranking</h5>
+                                <span class="text-muted text-xs">Metropolitan sales hubs ranked by revenue, order volume, and Average Order Value.</span>
+                            </div>
+                            <a href="/export/csv/cities" class="btn btn-sm btn-outline-success">
+                                <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle" id="tableCities">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>City</th>
+                                            <th>State</th>
+                                            <th class="text-end">Active Customers</th>
+                                            <th class="text-end">Total Orders</th>
+                                            <th class="text-end">Units Sold</th>
+                                            <th class="text-end">Total Revenue</th>
+                                            <th class="text-end">City AOV</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbodyCities">
+                                        <!-- Injected dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: FEATURE 7 - BUSINESS INSIGHTS GENERATOR -->
+                <section class="app-section" id="section-insights">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-wand-magic-sparkles text-primary me-2"></i>Feature 7: Dynamic Business Insights Generator</h5>
+                            <span class="text-muted text-xs">Automated business intelligence synthesis computed directly from actual database results. No hardcoded values.</span>
+                        </div>
+                        <span class="badge bg-soft-primary text-primary px-3 py-2 fs-6">
+                            <i class="fa-solid fa-bolt me-1"></i> Real-Time Analytical Engine
+                        </span>
+                    </div>
+
+                    <!-- Core Insight Cards Grid -->
+                    <div class="row g-3" id="insightsContainer">
+                        <div class="col-12 text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="text-muted mt-2">Synthesizing SQL analytical insights...</p>
+                        </div>
+                    </div>
+
+                    <!-- Strategic Executive Recommendations -->
+                    <div class="card shadow-sm border-0 mt-4">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-compass text-primary me-2"></i>Strategic Executive Recommendations</h6>
+                            <span class="text-muted text-xs">Data-driven action items formulated from sales distribution and inventory velocity analysis</span>
+                        </div>
+                        <div class="card-body" id="recommendationsContainer">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: ORACLE SQL WORKBENCH -->
+                <section class="app-section" id="section-sql">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-database text-primary me-2"></i>Oracle SQL Analytical Query Catalog</h5>
+                                <span class="text-muted text-xs">Production Oracle SQL queries utilizing CTEs, Window Functions, Aggregations, and Date Functions.</span>
+                            </div>
+                            <span class="badge bg-secondary">Oracle 19c / 21c / 23c Compatible</span>
+                        </div>
+                        <div class="card-body" id="sqlQueriesContainer">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js 4.4.3 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <!-- Custom Dashboard JS -->
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
